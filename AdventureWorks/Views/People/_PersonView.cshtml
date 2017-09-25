@@ -1,0 +1,166 @@
+﻿@model IEnumerable<AdventureWorks.Models.Person>
+
+@{
+    ViewBag.Title = "PersonView";
+}
+
+@{
+    var grid = new WebGrid(Model, rowsPerPage: 25, ajaxUpdateCallback: "GridUpdate", ajaxUpdateContainerId: "gridContent", canSort: true, canPage: true, defaultSort: "LastName");
+}
+
+<link href="@Url.Content("~/Content/webgrid.css")" rel="stylesheet" />
+
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+
+<script type="text/javascript">
+    function  Search()  {
+        var  searchVal  =  $("#txtNameSearch").val();
+        $.ajax({
+            type:  "POST", // POST call  
+            url:  '/People/Index', // call search action method of Home controller  
+            data:  {
+                searchString:  searchVal
+            }, // pass the parameter to action method. Here searchString is parameter of Action method from controller.   
+            dataType:  'html', // return html to render  
+            success:  function (data)  {
+                $('#PersonViewGrid').html(data); // Render filter result to div where partial view is there. We can render div and partial view should be inside div.  
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    function GridUpdate(result) {
+        $('#PeopleGrid').html(result);
+    }
+    $(document).ready(function () {
+        $('.edit-mode').hide();
+        $('.edit-user, .cancel-user').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit-mode, .display-mode').toggle();
+        });
+
+        $('.save-user').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            var FirstName = tr.find("#FirstName").val();
+            var MiddleName = tr.find("#MiddleName").val();
+            var LastName = tr.find("#LastName").val();
+            var Suffix = tr.find("#Suffix").val();
+            var EmailPromotion = tr.find("#EmailPromotion").val();
+            var ModifiedDate = tr.find("#ModifiedDate").val();
+            var BusinessEntityID = tr.find("#BusinessEntityID").html();
+            tr.find("#lblFirstName").text(FirstName);
+            tr.find("#lblMiddleName").text(MiddleName);
+            tr.find("#lblLastName").text(LastName);
+            tr.find("#lblSuffix").text(Suffix);
+            tr.find("#lblEmailPromotion").text(EmailPromotion);
+            tr.find("#lblModifiedDate").text(ModifiedDate);
+            tr.find('.edit-mode, .display-mode').toggle();
+            var PersonModel =
+                {
+                    "BusinessEntityID": BusinessEntityID,
+                    "FirstName": FirstName,
+                    "MiddleName": MiddleName,
+                    "LastName": LastName,
+                    "Suffix": Suffix,
+                    "EmailPromotion": EmailPromotion,
+                    "ModifiedDate": ModifiedDate
+                };
+            $.ajax({
+                url: '/People/Update/',
+                data: JSON.stringify(PersonModel),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    alert('Record updated Successfully!!');
+                }
+            });
+
+        });
+    })
+</script>
+
+<div id="gridContent" style="padding:20px;">
+
+    @grid.GetHtml(
+            tableStyle: "webgrid-table",
+            headerStyle: "webgrid-header",
+            footerStyle: "webgrid-footer",
+            alternatingRowStyle: "webgrid-alternating-row",
+            selectedRowStyle: "webgrid-selected-row",
+            rowStyle: "webgrid-row-style",
+            mode: WebGridPagerModes.All,
+            columns:
+            grid.Columns(
+                grid.Column("BusinessEntityID", "ID", format: @<text>
+                    <span class="display-mode">
+                        @item.BusinessEntityID
+                    </span>
+                    <label id="BusinessEntityID" class="edit-mode">
+                        @item.BusinessEntityID
+                    </label>
+                </text>, style: "col1Width"),
+
+                grid.Column("FirstName", "First Name", format: @<text>
+                    <span class="display-mode">
+                        <label id="lblFirstName">
+                            @item.FirstName
+                        </label>
+                    </span>
+                    <input type="text" id="FirstName" value="@item.FirstName" class="edit-mode" />
+                </text>, style: "col4Width"),
+
+                grid.Column("MiddleName", "Middle Name", format: @<text>
+                    <span class="display-mode">
+                        <label id="lblMiddleName">
+                            @item.MiddleName
+                        </label>
+                    </span>
+                    <input type="text" id="MiddleName" value="@item.MiddleName" style="width:100px;" class="edit-mode" />
+                </text>, style: "col2Width", canSort: false),
+
+                grid.Column("LastName", "Last Name", format: @<text>
+                    <span class="display-mode">
+                        <label id="lblLastName">
+                            @item.LastName
+                        </label>
+                    </span>
+                    <input type="text" id="LastName" value="@item.LastName" class="edit-mode" />
+                </text>, style: "col3Width"),
+
+                grid.Column("Suffix", "Suffix", format: @<text>
+                    <span class="display-mode">
+                        <label id="lblSuffix">
+                            @item.Suffix
+                        </label>
+                    </span>
+                    <input type="text" id="Suffix" value="@item.Suffix" style="width:60px;" class="edit-mode" />
+                </text>, style: "col2Width", canSort: false),
+
+                grid.Column("EmailPromotion", "Email Promotion", format: @<text>
+                    <span class="display-mode">
+                        <label id="lblEmailPromotion">
+                            @item.EmailPromotion
+                        </label>
+                    </span>
+                    <input type="number" id="EmailPromotion" value="@item.EmailPromotion" style="width: 40px;" max="3" min="0" step="1" class="edit-mode" />
+                </text>, style: "col2Width", canSort: false),
+
+                grid.Column("ModifiedDate", "Modified Date", format: @<text>
+                    <span class="display-mode">
+                        <label id="lblModifiedDate">
+                            @item.ModifiedDate.ToString("MM/dd/yyyy")
+                        </label>
+                    </span>
+                </text>, style: "col3Width", canSort: true),
+
+                grid.Column("Action", format: @<text>
+                    <button class="edit-user display-mode">Edit</button>
+                    <button class="save-user edit-mode">Save</button>
+                    <button class="cancel-user edit-mode">Cancel</button>
+                </text>, style: "col3Width", canSort: false)
+            )
+        )
+
+</div>
+

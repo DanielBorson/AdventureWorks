@@ -1,0 +1,30 @@
+﻿@model List<AdventureWorks.Models.Person>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<div id="PeopleGrid">
+    <h2>People</h2>
+
+    <p>
+        @Html.ActionLink("Create New", "Create")
+    </p>
+
+
+    @using (Html.BeginForm("Index", "People", FormMethod.Get))
+    {
+        <fieldset>
+            <legend>Search by Name</legend>
+            @Html.Label("search", "Name:")
+            @Html.TextBox("search")
+            <input type="submit" value="Search" />
+        </fieldset>
+    }
+
+
+    <div id="PersonViewGrid">
+        @Html.Partial("_PersonView", Model)
+    </div>
+
+</div>
